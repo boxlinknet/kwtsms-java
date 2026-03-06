@@ -6,15 +6,33 @@
 [![Java 8+](https://img.shields.io/badge/Java-8%2B-blue)](https://www.oracle.com/java/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Official Java client for the [kwtSMS](https://www.kwtsms.com) SMS gateway API. Zero dependencies, Java 8+, thread-safe.
+Java client for the [kwtSMS API](https://www.kwtsms.com). Send SMS, check balance, validate numbers, list sender IDs, check coverage, get delivery reports.
 
-[kwtSMS](https://www.kwtsms.com) is a Kuwait-based SMS gateway for sending SMS messages, OTP codes, notifications, and marketing campaigns. It supports Kuwait and international numbers, offers sender ID registration, delivery reports, and a REST/JSON API. This library wraps the full API so you can integrate SMS into any Java application in minutes.
+## About kwtSMS
 
-Send SMS, verify credentials, check balance, validate phone numbers, and more.
+kwtSMS is a Kuwaiti SMS gateway trusted by top businesses to deliver messages anywhere in the world, with private Sender ID, free API testing, non-expiring credits, and competitive flat-rate pricing. Secure, simple to integrate, built to last. Open a free account in under 1 minute, no paperwork or payment required. [Click here to get started](https://www.kwtsms.com/signup/)
 
-## Install
+## Prerequisites
 
-### Gradle (JitPack)
+You need **JDK 8+** to compile and run. Zero runtime dependencies.
+
+### Step 1: Check if Java is installed
+
+```bash
+java -version
+javac -version
+```
+
+If you see version numbers, you're ready. If not, install Java:
+
+- **All platforms (recommended):** Download [Eclipse Temurin JDK](https://adoptium.net/) (free, LTS)
+- **macOS:** `brew install temurin`
+- **Ubuntu/Debian:** `sudo apt install default-jdk`
+- **Windows:** Download installer from [adoptium.net](https://adoptium.net/)
+
+### Step 2: Install kwtsms-java
+
+**Gradle:**
 
 ```gradle
 // settings.gradle
@@ -28,7 +46,7 @@ dependencies {
 }
 ```
 
-### Gradle Kotlin DSL
+**Gradle Kotlin DSL:**
 
 ```kotlin
 // settings.gradle.kts
@@ -42,7 +60,7 @@ dependencies {
 }
 ```
 
-### Maven (JitPack)
+**Maven:**
 
 ```xml
 <repositories>
@@ -64,10 +82,10 @@ dependencies {
 ```java
 import com.kwtsms.*;
 
-// Option 1: Load from environment variables / .env file
+// Load credentials from environment variables or .env file
 KwtSMS sms = KwtSMS.fromEnv();
 
-// Option 2: Pass credentials directly
+// Or pass credentials directly
 KwtSMS sms = new KwtSMS("java_your_api_user", "java_your_api_pass");
 
 // Verify credentials
@@ -81,58 +99,54 @@ System.out.println("Message ID: " + result.getMsgId());
 System.out.println("Balance after: " + result.getBalanceAfter());
 ```
 
-## Environment Variables
+## Setup / Configuration
 
-Create a `.env` file (or set system environment variables):
+Create a `.env` file or set these environment variables:
 
 ```ini
 KWTSMS_USERNAME=java_your_api_user
 KWTSMS_PASSWORD=java_your_api_pass
-KWTSMS_SENDER_ID=YOUR-SENDER
+KWTSMS_SENDER_ID=KWT-SMS
 KWTSMS_TEST_MODE=1
 KWTSMS_LOG_FILE=kwtsms.log
 ```
 
-`KwtSMS.fromEnv()` reads environment variables first, falls back to `.env` file.
-
-## API Reference
-
-### Constructor
+Or pass credentials directly:
 
 ```java
-// All parameters
-KwtSMS sms = new KwtSMS(username, password, senderId, testMode, logFile);
-
-// Defaults: senderId="KWT-SMS", testMode=false, logFile="kwtsms.log"
-KwtSMS sms = new KwtSMS("java_user", "java_pass");
-
-// From environment / .env file
-KwtSMS sms = KwtSMS.fromEnv();
-KwtSMS sms = KwtSMS.fromEnv("/path/to/.env");
+KwtSMS sms = new KwtSMS("java_your_api_user", "java_your_api_pass", "MY-SENDER", false, "kwtsms.log");
 ```
 
-### verify()
+`KwtSMS.fromEnv()` reads environment variables first, falls back to `.env` file.
 
-Test credentials and get balance. Never throws.
+## Credential Management
+
+**Never hardcode credentials.** Use one of these approaches:
+
+1. **Environment variables / .env file** (default): `KwtSMS.fromEnv()` loads from env vars, then `.env` file. The file is `.gitignore`d and editable without redeployment.
+
+2. **Spring Boot**: Set in `application.properties` or environment variables, load via `@Value` or `Environment`.
+
+3. **Constructor injection**: `new KwtSMS(username, password, ...)` for custom config systems, DI containers, or remote config.
+
+4. **Secrets manager**: Load from AWS Secrets Manager, HashiCorp Vault, Google Secret Manager, or your own config API, then pass to the constructor.
+
+5. **Admin settings UI** (for web apps): Store credentials in your database with a settings page. Include a "Test Connection" button that calls `verify()`.
+
+## All Methods
+
+### Verify Credentials
 
 ```java
 VerifyResult result = sms.verify();
-result.isOk();       // true if credentials are valid
-result.getBalance();  // available credits (Double)
-result.getError();    // error message if failed
+if (result.isOk()) {
+    System.out.println("Balance: " + result.getBalance());
+} else {
+    System.err.println("Error: " + result.getError());
+}
 ```
 
-### balance()
-
-Get current SMS credit balance. Returns cached value if API call fails.
-
-```java
-Double balance = sms.balance();  // null if no cached value and API fails
-```
-
-### send()
-
-Send SMS to one or more numbers. Automatically validates, normalizes, deduplicates, and cleans the message.
+### Send SMS
 
 ```java
 // Single number
@@ -158,9 +172,7 @@ r.getAction();        // developer-friendly action message
 r.getInvalid();       // list of numbers that failed local validation
 ```
 
-### sendBulk()
-
-Send to >200 numbers with auto-batching.
+### Send Bulk (>200 numbers)
 
 ```java
 BulkSendResult r = sms.sendBulk(phoneList, "Campaign message");
@@ -170,9 +182,14 @@ r.getMsgIds();        // message IDs per batch
 r.getErrors();        // per-batch errors
 ```
 
-### validate()
+### Check Balance
 
-Validate phone numbers via the kwtSMS API.
+```java
+Double balance = sms.balance();           // live balance, cached fallback
+Double cached = sms.getCachedBalance();   // from last verify/send
+```
+
+### Validate Numbers
 
 ```java
 ValidateResult r = sms.validate(Arrays.asList("96598765432", "invalid"));
@@ -182,27 +199,21 @@ r.getNr();       // no route (country not activated)
 r.getRejected(); // failed local validation
 ```
 
-### senderIds()
-
-List available sender IDs on your account.
+### Sender IDs
 
 ```java
 SenderIdResult r = sms.senderIds();
 r.getSenderIds();  // ["KWT-SMS", "MY-APP"]
 ```
 
-### coverage()
-
-List active country prefixes.
+### Coverage
 
 ```java
 CoverageResult r = sms.coverage();
 r.getPrefixes();  // ["965", "966", ...]
 ```
 
-### status()
-
-Check message queue status.
+### Message Status
 
 ```java
 StatusResult r = sms.status("msg-id-from-send");
@@ -210,9 +221,7 @@ r.getStatus();             // "sent", "pending", etc.
 r.getStatusDescription();  // human-readable status
 ```
 
-### deliveryReport()
-
-Get delivery reports (international numbers only, not Kuwait).
+### Delivery Report (international only)
 
 ```java
 DeliveryReportResult r = sms.deliveryReport("msg-id-from-send");
@@ -223,50 +232,106 @@ for (DeliveryReportEntry entry : r.getReport()) {
 
 ## Utility Functions
 
-### PhoneUtils
-
 ```java
-// Normalize: strip +, 00, spaces, dashes, convert Arabic digits
-String normalized = PhoneUtils.normalizePhone("+965 9876 5432");
-// -> "96598765432"
+import com.kwtsms.*;
 
-// Validate: returns ValidationResult with isValid(), getError(), getNormalized()
-PhoneUtils.ValidationResult vr = PhoneUtils.validatePhoneInput("user@email.com");
-// -> isValid()=false, getError()="'user@email.com' is an email address..."
+// Normalize phone number
+String phone = PhoneUtils.normalizePhone("+965 9876-5432"); // "96598765432"
 
-// Deduplicate
+// Validate phone input
+PhoneUtils.ValidationResult vr = PhoneUtils.validatePhoneInput("user@gmail.com");
+// vr.isValid()=false, vr.getError()="'user@gmail.com' is an email address..."
+
+// Deduplicate phone list
 List<String> unique = PhoneUtils.deduplicatePhones(phoneList);
+
+// Clean message text
+String cleaned = MessageUtils.cleanMessage("Hello \uD83D\uDE00 OTP: \u0661\u0662\u0663");
+// "Hello  OTP: 123"
 ```
 
-### MessageUtils
+## Input Sanitization
+
+`MessageUtils.cleanMessage()` is called automatically by `send()` before every API call. It prevents the #1 cause of "message sent but not received" support tickets:
+
+| Content | Effect without cleaning | What cleanMessage() does |
+|---------|------------------------|--------------------------|
+| Emojis | Stuck in queue, credits wasted, no error | Stripped |
+| Hidden control characters (BOM, zero-width space, soft hyphen) | Spam filter rejection or queue stuck | Stripped |
+| Arabic/Hindi numerals in body | OTP codes render inconsistently | Converted to Latin digits |
+| HTML tags | ERR027, message rejected | Stripped |
+| Directional marks (LTR, RTL) | May cause display issues | Stripped |
+
+Arabic letters and Arabic text are fully supported and never stripped.
+
+## Error Handling
+
+Every ERROR response includes an `action` field with a developer-friendly fix:
 
 ```java
-// Clean: strip emojis, HTML, control chars, convert Arabic digits
-String clean = MessageUtils.cleanMessage("Hello \uD83D\uDE00 <b>World</b>");
-// -> "Hello  World"
-```
-
-### ApiErrors
-
-```java
-// Full error code map (read-only)
 Map<String, String> errors = ApiErrors.API_ERRORS;
 String action = errors.get("ERR003");
-// -> "Wrong API username or password..."
+// "Wrong API username or password. Check KWTSMS_USERNAME and KWTSMS_PASSWORD..."
 
-// Enrich a raw API response
 Map<String, Object> enriched = ApiErrors.enrichError(apiResponse);
 // Adds "action" field with developer-friendly guidance
 ```
 
-## Credential Management
+### User-facing error mapping
 
-**Never hardcode credentials.** Use one of these approaches:
+Raw API errors should never be shown to end users. Map them:
 
-1. **Environment variables / .env file** (default): `KwtSMS.fromEnv()` handles this automatically
-2. **Spring Boot**: set in `application.properties`, load via `@Value` or environment
-3. **Constructor injection**: `new KwtSMS(username, password)` for custom config systems
-4. **Secrets manager**: load from AWS Secrets Manager, HashiCorp Vault, etc.
+| Situation | API error | Show to user |
+|-----------|----------|--------------|
+| Invalid phone number | ERR006, ERR025 | "Please enter a valid phone number in international format (e.g., +965 9876 5432)." |
+| Wrong credentials | ERR003 | "SMS service is temporarily unavailable. Please try again later." (log + alert admin) |
+| No balance | ERR010, ERR011 | "SMS service is temporarily unavailable. Please try again later." (alert admin) |
+| Country not supported | ERR026 | "SMS delivery to this country is not available." |
+| Rate limited | ERR028 | "Please wait a moment before requesting another code." |
+| Message rejected | ERR031, ERR032 | "Your message could not be sent. Please try again with different content." |
+| Queue full | ERR013 | "SMS service is busy. Please try again in a few minutes." (library retries automatically) |
+| Network error | Connection timeout | "Could not connect to SMS service." |
+
+## Phone Number Formats
+
+All formats are accepted and normalized automatically:
+
+| Input | Normalized | Valid? |
+|-------|-----------|--------|
+| `96598765432` | `96598765432` | Yes |
+| `+96598765432` | `96598765432` | Yes |
+| `0096598765432` | `96598765432` | Yes |
+| `965 9876 5432` | `96598765432` | Yes |
+| `965-9876-5432` | `96598765432` | Yes |
+| `(965) 98765432` | `96598765432` | Yes |
+| `٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Yes |
+| `۹۶۵۹۸۷۶۵۴۳۲` | `96598765432` | Yes |
+| `+٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Yes |
+| `٠٠٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Yes |
+| `٩٦٥ ٩٨٧٦ ٥٤٣٢` | `96598765432` | Yes |
+| `٩٦٥-٩٨٧٦-٥٤٣٢` | `96598765432` | Yes |
+| `965٩٨٧٦٥٤٣٢` | `96598765432` | Yes |
+| `123456` (too short) | rejected | No |
+| `user@gmail.com` | rejected | No |
+
+## Test Mode
+
+**Test mode** (`KWTSMS_TEST_MODE=1`) sends your message to the kwtSMS queue but does NOT deliver it to the handset. No SMS credits are consumed. Use this during development.
+
+**Live mode** (`KWTSMS_TEST_MODE=0`) delivers the message for real and deducts credits. Always develop in test mode and switch to live only when ready for production.
+
+## Sender ID
+
+A **Sender ID** is the name that appears as the sender on the recipient's phone (e.g., "MY-APP" instead of a random number).
+
+| | Promotional | Transactional |
+|--|-------------|---------------|
+| **Use for** | Bulk SMS, marketing, offers | OTP, alerts, notifications |
+| **Delivery to DND numbers** | Blocked/filtered, credits lost | Bypasses DND (whitelisted) |
+| **Speed** | May have delays | Priority delivery |
+| **Cost** | 10 KD one-time | 15 KD one-time |
+
+`KWT-SMS` is a shared test sender. It causes delivery delays, is blocked on Virgin Kuwait, and should never be used in production. Register your own private Sender ID through your kwtSMS account. For OTP/authentication messages, you need a **Transactional** Sender ID to bypass DND filtering. Sender ID is **case sensitive**.
 
 ## Best Practices
 
@@ -280,7 +345,7 @@ if ("OK".equals(r.getResult())) {
 }
 ```
 
-### Validate before calling the API
+### Validate locally before calling the API
 
 ```java
 PhoneUtils.ValidationResult vr = PhoneUtils.validatePhoneInput(userInput);
@@ -289,7 +354,9 @@ if (!vr.isValid()) {
 }
 ```
 
-### Cache coverage for local country checks
+### Country coverage pre-check
+
+Call `coverage()` once at startup and cache the active prefixes. Before every send, check if the number's country prefix is in the list. If not, return an error immediately without hitting the API.
 
 ```java
 // At startup
@@ -302,26 +369,18 @@ if (!activePrefixes.stream().anyMatch(normalized::startsWith)) {
 }
 ```
 
-### User-facing error messages
+### OTP requirements
 
-Never expose raw API errors to end users:
-
-| Situation | Show to user | Log for admin |
-|-----------|-------------|---------------|
-| Invalid phone | "Please enter a valid phone number (e.g., +965 9876 5432)." | ERR006/ERR025 |
-| Auth/balance | "SMS service is temporarily unavailable." | ERR003/ERR010/ERR011 |
-| Rate limited | "Please wait a moment before requesting another code." | ERR028 |
-| Network error | "Could not connect to SMS service." | Connection timeout |
+- Always include app/company name: `"Your OTP for APPNAME is: 123456"`
+- Resend timer: minimum 3-4 minutes (KNET standard is 4 minutes)
+- OTP expiry: 3-5 minutes
+- New code on resend: always generate a fresh code, invalidate previous
+- Use Transactional Sender ID for OTP (not Promotional, not KWT-SMS)
+- One number per OTP request: never batch OTP sends
 
 ### Thread safety
 
 `KwtSMS` is thread-safe. Create one instance and share it across threads. Use it as a singleton bean in Spring.
-
-### Sender ID
-
-- `KWT-SMS` is for testing only. Register a private sender ID before going live.
-- Use **Transactional** sender ID for OTP (bypasses DND filtering).
-- Sender ID is **case sensitive**: `Kuwait` is not the same as `KUWAIT`.
 
 ## Security Checklist
 
@@ -334,12 +393,19 @@ Before going live:
 - [ ] Monitoring/alerting on abuse patterns
 - [ ] Admin notification on low balance
 - [ ] Test mode OFF (`KWTSMS_TEST_MODE=0`)
-- [ ] Private sender ID registered (not KWT-SMS)
-- [ ] Transactional sender ID for OTP (not promotional)
+- [ ] Private Sender ID registered (not KWT-SMS)
+- [ ] Transactional Sender ID for OTP (not promotional)
 
-## Timestamps
+## What's Handled Automatically
 
-`unix-timestamp` values in API responses are in **GMT+3 (Asia/Kuwait)** server time, not UTC. Convert when storing or displaying.
+- **Phone normalization**: `+`, `00`, spaces, dashes, dots, parentheses stripped. Arabic-Indic digits converted. Leading zeros removed.
+- **Duplicate phone removal**: If the same number appears multiple times (in different formats), it is sent only once.
+- **Message cleaning**: Emojis removed (codepoint-safe). Hidden control characters (BOM, zero-width spaces, directional marks) removed. HTML tags stripped. Arabic-Indic digits in message body converted to Latin.
+- **Batch splitting**: More than 200 numbers are automatically split into batches of 200 with 0.5s delay between batches.
+- **ERR013 retry**: Queue-full errors are automatically retried up to 3 times with exponential backoff (30s / 60s / 120s).
+- **Error enrichment**: Every API error response includes an `action` field with a developer-friendly fix hint.
+- **Credential masking**: Passwords are always masked as `***` in log files. Never exposed.
+- **Balance caching**: Balance is cached from every `verify()` and `send()` response. `balance()` falls back to the cached value on API failure.
 
 ## Examples
 
@@ -347,12 +413,12 @@ See the [examples/](examples/) directory:
 
 | # | Example | Description |
 |---|---------|-------------|
-| 01 | [Basic Usage](examples/01-basic-usage/) | Send SMS, check balance, verify credentials |
-| 02 | [OTP Flow](examples/02-otp-flow/) | One-time password implementation |
-| 03 | [Bulk SMS](examples/03-bulk-sms/) | Auto-batched bulk sending |
-| 04 | [Spring Endpoint](examples/04-spring-endpoint/) | REST API with Spring Boot |
-| 05 | [Error Handling](examples/05-error-handling/) | Handle all error codes gracefully |
-| 06 | [OTP Production](examples/06-otp-production/) | Production OTP with rate limiting and CAPTCHA |
+| 01 | [Basic Usage](examples/01-basic-usage/) | Verify credentials, send SMS, check balance |
+| 02 | [OTP Flow](examples/02-otp-flow/) | Validate phone, send OTP with best practices |
+| 03 | [Bulk SMS](examples/03-bulk-sms/) | Bulk send with >200 number batching |
+| 04 | [Spring Endpoint](examples/04-spring-endpoint/) | REST API endpoint using Spring Boot |
+| 05 | [Error Handling](examples/05-error-handling/) | All error paths, user-facing message mapping |
+| 06 | [OTP Production](examples/06-otp-production/) | Production OTP: rate limiting, CAPTCHA, hashed storage |
 
 ## Tests
 
@@ -460,27 +526,50 @@ See the [examples/](examples/) directory:
 | `status()` invalid msgId | Returns error |
 | `deliveryReport()` invalid msgId | Returns error |
 
-Run integration tests with:
-
 ```bash
+# Unit tests (no credentials needed)
+./gradlew test
+
+# Integration tests (real API, test mode, no credits consumed)
 export JAVA_USERNAME=java_your_api_user
 export JAVA_PASSWORD=java_your_api_pass
 ./gradlew test
 ```
 
-## Requirements
+## FAQ
 
-- Java 8+ (runtime)
-- Zero runtime dependencies
+**1. My message was sent successfully (result: OK) but the recipient didn't receive it. What happened?**
 
-## Links
+Check the **Sending Queue** at [kwtsms.com](https://www.kwtsms.com/login/). If your message is stuck there, it was accepted by the API but not dispatched. Common causes are emoji in the message, hidden characters from copy-pasting, or spam filter triggers. Delete it from the queue to recover your credits. Also verify that `test` mode is off (`KWTSMS_TEST_MODE=0`). Test messages are queued but never delivered.
 
-- [kwtSMS website](https://www.kwtsms.com)
-- [API documentation (PDF)](https://www.kwtsms.com/doc/KwtSMS.com_API_Documentation_v41.pdf)
-- [Best practices](https://www.kwtsms.com/articles/sms-api-implementation-best-practices.html)
-- [Integration test checklist](https://www.kwtsms.com/articles/sms-api-integration-test-checklist.html)
-- [All integrations](https://www.kwtsms.com/integrations.html)
-- [Support](https://www.kwtsms.com/support.html)
+**2. What is the difference between Test mode and Live mode?**
+
+**Test mode** (`KWTSMS_TEST_MODE=1`) sends your message to the kwtSMS queue but does NOT deliver it to the handset. No SMS credits are consumed. Use this during development. **Live mode** (`KWTSMS_TEST_MODE=0`) delivers the message for real and deducts credits. Always develop in test mode and switch to live only when ready for production.
+
+**3. What is a Sender ID and why should I not use "KWT-SMS" in production?**
+
+A **Sender ID** is the name that appears as the sender on the recipient's phone (e.g., "MY-APP" instead of a random number). `KWT-SMS` is a shared test sender. It causes delivery delays, is blocked on Virgin Kuwait, and should never be used in production. Register your own private Sender ID through your kwtSMS account. For OTP/authentication messages, you need a **Transactional** Sender ID to bypass DND (Do Not Disturb) filtering.
+
+**4. I'm getting ERR003 "Authentication error". What's wrong?**
+
+You are using the wrong credentials. The API requires your **API username and API password**, NOT your account mobile number. Log in to [kwtsms.com](https://www.kwtsms.com/login/), go to Account, and check your API credentials. Also make sure you are using POST (not GET) and `Content-Type: application/json`.
+
+**5. Can I send to international numbers (outside Kuwait)?**
+
+International sending is **disabled by default** on kwtSMS accounts. Contact kwtSMS support to request activation for specific country prefixes. Use `coverage()` to check which countries are currently active on your account. Be aware that activating international coverage increases exposure to automated abuse. Implement rate limiting and CAPTCHA before enabling.
+
+## Timestamps
+
+`unix-timestamp` values in API responses are in **GMT+3 (Asia/Kuwait)** server time, not UTC. Convert when storing or displaying.
+
+## Help & Support
+
+- **[kwtSMS FAQ](https://www.kwtsms.com/faq/)**: Answers to common questions about credits, sender IDs, OTP, and delivery
+- **[kwtSMS Support](https://www.kwtsms.com/support.html)**: Open a support ticket or browse help articles
+- **[Contact kwtSMS](https://www.kwtsms.com/#contact)**: Reach the kwtSMS team directly for Sender ID registration and account issues
+- **[API Documentation (PDF)](https://www.kwtsms.com/doc/KwtSMS.com_API_Documentation_v41.pdf)**: kwtSMS REST API v4.1 full reference
+- **[kwtSMS Dashboard](https://www.kwtsms.com/login/)**: Recharge credits, buy Sender IDs, view message logs, manage coverage
+- **[Other Integrations](https://www.kwtsms.com/integrations.html)**: Plugins and integrations for other platforms and languages
 
 ## License
 

@@ -42,7 +42,7 @@ repositories {
 
 // build.gradle
 dependencies {
-    implementation 'com.github.boxlinknet:kwtsms-java:0.2.0'
+    implementation 'com.github.boxlinknet:kwtsms-java:0.3.0'
 }
 ```
 
@@ -56,7 +56,7 @@ repositories {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.boxlinknet:kwtsms-java:0.2.0")
+    implementation("com.github.boxlinknet:kwtsms-java:0.3.0")
 }
 ```
 
@@ -413,6 +413,7 @@ See the [examples/](examples/) directory:
 
 | # | Example | Description |
 |---|---------|-------------|
+| 00 | [Raw API](examples/00-raw-api/) | Call every kwtSMS endpoint directly — no library, no dependencies |
 | 01 | [Basic Usage](examples/01-basic-usage/) | Verify credentials, send SMS, check balance |
 | 02 | [OTP Flow](examples/02-otp-flow/) | Validate phone, send OTP with best practices |
 | 03 | [Bulk SMS](examples/03-bulk-sms/) | Bulk send with >200 number batching |

@@ -1,10 +1,16 @@
 plugins {
     id 'java-library'
+    id 'application'
     id 'maven-publish'
 }
 
+application {
+    mainClass = 'com.kwtsms.CLI'
+    applicationName = 'kwtsms'
+}
+
 group = 'com.github.boxlinknet'
-version = '0.2.0'
+version = '0.3.0'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -23,6 +29,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Pass integration test credentials to the test JVM
+    environment 'JAVA_USERNAME', System.getenv('JAVA_USERNAME') ?: ''
+    environment 'JAVA_PASSWORD', System.getenv('JAVA_PASSWORD') ?: ''
     testLogging {
         events 'passed', 'skipped', 'failed'
         showStandardStreams = true

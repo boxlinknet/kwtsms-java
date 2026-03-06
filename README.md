@@ -1,4 +1,4 @@
-# kwtsms-java
+# kwtSMS Java Client
 
 [![Tests](https://github.com/boxlinknet/kwtsms-java/actions/workflows/test.yml/badge.svg)](https://github.com/boxlinknet/kwtsms-java/actions/workflows/test.yml)
 [![CodeQL](https://github.com/boxlinknet/kwtsms-java/actions/workflows/codeql.yml/badge.svg)](https://github.com/boxlinknet/kwtsms-java/actions/workflows/codeql.yml)
@@ -8,7 +8,9 @@
 
 Official Java client for the [kwtSMS](https://www.kwtsms.com) SMS gateway API. Zero dependencies, Java 8+, thread-safe.
 
-Send SMS, verify credentials, check balance, validate phone numbers, and more. A developer should go from zero to sending an SMS in under 5 minutes.
+[kwtSMS](https://www.kwtsms.com) is a Kuwait-based SMS gateway for sending SMS messages, OTP codes, notifications, and marketing campaigns. It supports Kuwait and international numbers, offers sender ID registration, delivery reports, and a REST/JSON API. This library wraps the full API so you can integrate SMS into any Java application in minutes.
+
+Send SMS, verify credentials, check balance, validate phone numbers, and more.
 
 ## Install
 

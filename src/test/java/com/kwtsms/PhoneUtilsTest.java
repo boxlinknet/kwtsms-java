@@ -162,6 +162,82 @@ class PhoneUtilsTest {
         assertEquals("96598765432", r.getNormalized());
     }
 
+    // ── Arabic/Hindi digit edge cases ──
+
+    @Test
+    void normalizePhone_arabicIndicWithPlus() {
+        // +٩٦٥٩٨٧٦٥٤٣٢
+        assertEquals("96598765432", PhoneUtils.normalizePhone("+\u0669\u0666\u0665\u0669\u0668\u0667\u0666\u0665\u0664\u0663\u0662"));
+    }
+
+    @Test
+    void normalizePhone_arabicIndicWith00Prefix() {
+        // ٠٠٩٦٥٩٨٧٦٥٤٣٢
+        assertEquals("96598765432", PhoneUtils.normalizePhone("\u0660\u0660\u0669\u0666\u0665\u0669\u0668\u0667\u0666\u0665\u0664\u0663\u0662"));
+    }
+
+    @Test
+    void normalizePhone_arabicIndicWithSpaces() {
+        // ٩٦٥ ٩٨٧٦ ٥٤٣٢
+        assertEquals("96598765432", PhoneUtils.normalizePhone("\u0669\u0666\u0665 \u0669\u0668\u0667\u0666 \u0665\u0664\u0663\u0662"));
+    }
+
+    @Test
+    void normalizePhone_arabicIndicWithDashes() {
+        // ٩٦٥-٩٨٧٦-٥٤٣٢
+        assertEquals("96598765432", PhoneUtils.normalizePhone("\u0669\u0666\u0665-\u0669\u0668\u0667\u0666-\u0665\u0664\u0663\u0662"));
+    }
+
+    @Test
+    void normalizePhone_mixedArabicAndLatinDigits() {
+        // 965٩٨٧٦٥٤٣٢
+        assertEquals("96598765432", PhoneUtils.normalizePhone("965\u0669\u0668\u0667\u0666\u0665\u0664\u0663\u0662"));
+    }
+
+    @Test
+    void normalizePhone_extendedArabicIndicWithPlus() {
+        // +۹۶۵۹۸۷۶۵۴۳۲ (Persian/Urdu digits)
+        assertEquals("96598765432", PhoneUtils.normalizePhone("+\u06F9\u06F6\u06F5\u06F9\u06F8\u06F7\u06F6\u06F5\u06F4\u06F3\u06F2"));
+    }
+
+    @Test
+    void normalizePhone_extendedArabicIndicWith00() {
+        // ۰۰۹۶۵۹۸۷۶۵۴۳۲ (Persian/Urdu digits with 00 prefix)
+        assertEquals("96598765432", PhoneUtils.normalizePhone("\u06F0\u06F0\u06F9\u06F6\u06F5\u06F9\u06F8\u06F7\u06F6\u06F5\u06F4\u06F3\u06F2"));
+    }
+
+    @Test
+    void validatePhoneInput_extendedArabicIndicDigits() {
+        // ۹۶۵۹۸۷۶۵۴۳۲ (Persian/Urdu)
+        PhoneUtils.ValidationResult r = PhoneUtils.validatePhoneInput("\u06F9\u06F6\u06F5\u06F9\u06F8\u06F7\u06F6\u06F5\u06F4\u06F3\u06F2");
+        assertTrue(r.isValid());
+        assertEquals("96598765432", r.getNormalized());
+    }
+
+    @Test
+    void validatePhoneInput_arabicDigitsWithPlus() {
+        // +٩٦٥٩٨٧٦٥٤٣٢
+        PhoneUtils.ValidationResult r = PhoneUtils.validatePhoneInput("+\u0669\u0666\u0665\u0669\u0668\u0667\u0666\u0665\u0664\u0663\u0662");
+        assertTrue(r.isValid());
+        assertEquals("96598765432", r.getNormalized());
+    }
+
+    @Test
+    void validatePhoneInput_arabicDigitsTooShort() {
+        // ١٢٣ (3 Arabic digits)
+        PhoneUtils.ValidationResult r = PhoneUtils.validatePhoneInput("\u0661\u0662\u0663");
+        assertFalse(r.isValid());
+        assertTrue(r.getError().contains("too short"));
+    }
+
+    @Test
+    void validatePhoneInput_mixedArabicLatinDigits() {
+        // 965٩٨٧٦٥٤٣٢
+        PhoneUtils.ValidationResult r = PhoneUtils.validatePhoneInput("965\u0669\u0668\u0667\u0666\u0665\u0664\u0663\u0662");
+        assertTrue(r.isValid());
+        assertEquals("96598765432", r.getNormalized());
+    }
+
     // ── deduplicatePhones ──
 
     @Test

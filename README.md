@@ -354,6 +354,120 @@ See the [examples/](examples/) directory:
 | 05 | [Error Handling](examples/05-error-handling/) | Handle all error codes gracefully |
 | 06 | [OTP Production](examples/06-otp-production/) | Production OTP with rate limiting and CAPTCHA |
 
+## Tests
+
+89 unit tests, 22 integration tests. Run with `./gradlew test`.
+
+### Phone Normalization (37 tests)
+
+| Input | Expected | Test |
+|-------|----------|------|
+| `+96598765432` | `96598765432` | Strip `+` prefix |
+| `0096598765432` | `96598765432` | Strip `00` prefix |
+| `965 9876 5432` | `96598765432` | Strip spaces |
+| `965-9876-5432` | `96598765432` | Strip dashes |
+| `965.9876.5432` | `96598765432` | Strip dots |
+| `(965) 98765432` | `96598765432` | Strip parentheses |
+| `+965 (98) 765-432` | `96598765432` | Mixed formatting |
+| `٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Arabic-Indic digits |
+| `۹۶۵۹۸۷۶۵۴۳۲` | `96598765432` | Extended Arabic-Indic (Persian/Urdu) |
+| `+٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Arabic-Indic with `+` |
+| `٠٠٩٦٥٩٨٧٦٥٤٣٢` | `96598765432` | Arabic-Indic with `٠٠` prefix |
+| `٩٦٥ ٩٨٧٦ ٥٤٣٢` | `96598765432` | Arabic-Indic with spaces |
+| `٩٦٥-٩٨٧٦-٥٤٣٢` | `96598765432` | Arabic-Indic with dashes |
+| `965٩٨٧٦٥٤٣٢` | `96598765432` | Mixed Arabic + Latin digits |
+| `+۹۶۵۹۸۷۶۵۴۳۲` | `96598765432` | Extended Arabic-Indic with `+` |
+| `۰۰۹۶۵۹۸۷۶۵۴۳۲` | `96598765432` | Extended Arabic-Indic with `۰۰` |
+| `abcdef` | `""` | Letters only |
+| `000` | `""` | Only zeros |
+| `""` | `""` | Empty string |
+| `null` | `""` | Null input |
+
+### Phone Validation (13 tests)
+
+| Input | Valid? | Error |
+|-------|--------|-------|
+| `96598765432` | Yes | — |
+| `+96598765432` | Yes | — |
+| `1234567` | Yes | — (7 digits min) |
+| `123456789012345` | Yes | — (15 digits max) |
+| `٩٦٥٩٨٧٦٥٤٣٢` | Yes | Arabic-Indic digits normalized |
+| `۹۶۵۹۸۷۶۵۴۳۲` | Yes | Extended Arabic-Indic normalized |
+| `+٩٦٥٩٨٧٦٥٤٣٢` | Yes | Arabic-Indic with `+` |
+| `965٩٨٧٦٥٤٣٢` | Yes | Mixed Arabic + Latin |
+| `""` | No | Phone number is required |
+| `"   "` | No | Phone number is required |
+| `user@example.com` | No | Email address detected |
+| `123` | No | Too short (3 digits) |
+| `١٢٣` | No | Arabic digits too short |
+| `1234567890123456` | No | Too long (16 digits) |
+| `abcdef` | No | No digits found |
+
+### Message Cleaning (28 tests)
+
+| Input | Expected | Test |
+|-------|----------|------|
+| `Hello 😀 World` | `Hello  World` | Strip emoji |
+| `<b>Hello</b>` | `Hello` | Strip HTML |
+| `Hello\u200B` | `Hello` | Strip zero-width space |
+| `Hello\uFEFF` | `Hello` | Strip BOM |
+| `Hello\u00AD` | `Hello` | Strip soft hyphen |
+| `٩٨٧٦` | `9876` | Convert Arabic-Indic digits |
+| `۹۸۷۶` | `9876` | Convert Extended Arabic-Indic |
+| Arabic text | Preserved | Arabic characters kept |
+| `\n` newlines | Preserved | Newlines kept |
+
+### API Errors (14 tests)
+
+| Test | Description |
+|------|-------------|
+| 33+ error codes mapped | All kwtSMS error codes have action messages |
+| `enrichError(ERR003)` | Adds credential guidance |
+| `enrichError(ERR010)` | Adds recharge link |
+| `enrichError(ERR025)` | Adds country code guidance |
+| `enrichError(ERR028)` | Adds 15-second rate limit note |
+| `enrichError(ERR999)` | Unknown code returns no action (no crash) |
+| `enrichError(OK)` | OK responses unchanged |
+| Map is unmodifiable | Cannot add/remove error codes at runtime |
+
+### Env Loader (13 tests)
+
+| Test | Description |
+|------|-------------|
+| `KEY=value` | Basic key-value parsing |
+| `# comment` | Comments skipped |
+| `KEY="value with spaces"` | Double-quoted values |
+| `KEY='value'` | Single-quoted values |
+| `KEY=value # inline` | Inline comments stripped |
+| `KEY="value#hash"` | Hash inside quotes preserved |
+| Missing file | Returns empty map (no crash) |
+| Real-world `.env` | Full `KWTSMS_USERNAME=java_myuser` example |
+
+### Integration Tests (22 tests, require API credentials)
+
+| Test | Description |
+|------|-------------|
+| `verify()` valid/invalid creds | Auth check with balance |
+| `balance()` | Returns non-negative number |
+| `send()` Kuwait number | Test mode send |
+| `send()` email/short/letters | Rejected with invalid entries |
+| `send()` `+`/`00`/Arabic normalization | Format variants accepted |
+| `send()` dedup | `+965...` and `00965...` count as one |
+| `send()` empty/emoji message | Rejected after cleaning |
+| `senderIds()` | Returns list with at least one ID |
+| `coverage()` | Returns country prefixes |
+| `validate()` valid/mixed | API validation with rejected entries |
+| `status()` invalid msgId | Returns error |
+| `deliveryReport()` invalid msgId | Returns error |
+
+Run integration tests with:
+
+```bash
+export JAVA_USERNAME=java_your_api_user
+export JAVA_PASSWORD=java_your_api_pass
+./gradlew test
+```
+
 ## Requirements
 
 - Java 8+ (runtime)

@@ -31,9 +31,7 @@ build/
 # Compiled class files
 *.class
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 
 # Local Gradle properties (may contain signing credentials)
 local.properties
-
-# Gradle wrapper (optional, some prefer to commit it)
-# gradle/wrapper/gradle-wrapper.jar

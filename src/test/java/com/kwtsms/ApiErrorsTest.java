@@ -34,7 +34,7 @@ class ApiErrorsTest {
 
         Map<String, Object> enriched = ApiErrors.enrichError(response);
         assertNotNull(enriched.get("action"));
-        assertTrue(enriched.get("action").toString().contains("KWTSMS_USERNAME"));
+        assertTrue(enriched.get("action").toString().contains("JAVA_USERNAME"));
     }
 
     @Test

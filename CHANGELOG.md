@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-03-06
+
+### Changed
+- `fromEnv()` now reads `JAVA_USERNAME` / `JAVA_PASSWORD` instead of `KWTSMS_USERNAME` / `KWTSMS_PASSWORD` for credentials, so each language client uses distinct env vars
+- ERR003 error message references `JAVA_USERNAME` / `JAVA_PASSWORD`
+- Updated all docs and examples to use `JAVA_USERNAME` / `JAVA_PASSWORD`
+
+### Updated
+- actions/checkout v4 → v6
+- actions/setup-java v4 → v5
+- gradle/actions v4 → v5
+- github/codeql-action v3 → v4
+
 ## [0.1.0] - 2026-03-06
 
 ### Added

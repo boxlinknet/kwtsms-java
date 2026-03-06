@@ -76,7 +76,7 @@ public class KwtSMS {
     /**
      * Create a KwtSMS client from environment variables and/or .env file.
      *
-     * Reads: KWTSMS_USERNAME, KWTSMS_PASSWORD, KWTSMS_SENDER_ID, KWTSMS_TEST_MODE, KWTSMS_LOG_FILE.
+     * Reads: JAVA_USERNAME, JAVA_PASSWORD, KWTSMS_SENDER_ID, KWTSMS_TEST_MODE, KWTSMS_LOG_FILE.
      * Environment variables take precedence over .env file values.
      *
      * @param envFile path to .env file (default: ".env")
@@ -85,8 +85,8 @@ public class KwtSMS {
     public static KwtSMS fromEnv(String envFile) {
         Map<String, String> fileVars = EnvLoader.loadEnvFile(envFile);
 
-        String username = resolve("KWTSMS_USERNAME", "", fileVars);
-        String password = resolve("KWTSMS_PASSWORD", "", fileVars);
+        String username = resolve("JAVA_USERNAME", "", fileVars);
+        String password = resolve("JAVA_PASSWORD", "", fileVars);
         String senderId = resolve("KWTSMS_SENDER_ID", "KWT-SMS", fileVars);
         boolean testMode = "1".equals(resolve("KWTSMS_TEST_MODE", "0", fileVars));
         String logFile = resolve("KWTSMS_LOG_FILE", "kwtsms.log", fileVars);

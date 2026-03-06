@@ -22,7 +22,7 @@ repositories {
 
 // build.gradle
 dependencies {
-    implementation 'com.github.boxlinknet:kwtsms-java:0.1.0'
+    implementation 'com.github.boxlinknet:kwtsms-java:0.2.0'
 }
 ```
 
@@ -36,7 +36,7 @@ repositories {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.boxlinknet:kwtsms-java:0.1.0")
+    implementation("com.github.boxlinknet:kwtsms-java:0.2.0")
 }
 ```
 
@@ -53,7 +53,7 @@ dependencies {
 <dependency>
     <groupId>com.github.boxlinknet</groupId>
     <artifactId>kwtsms-java</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
@@ -84,8 +84,8 @@ System.out.println("Balance after: " + result.getBalanceAfter());
 Create a `.env` file (or set system environment variables):
 
 ```ini
-KWTSMS_USERNAME=your_api_user
-KWTSMS_PASSWORD=your_api_pass
+JAVA_USERNAME=your_api_user
+JAVA_PASSWORD=your_api_pass
 KWTSMS_SENDER_ID=YOUR-SENDER
 KWTSMS_TEST_MODE=1
 KWTSMS_LOG_FILE=kwtsms.log

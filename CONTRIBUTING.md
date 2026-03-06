@@ -15,8 +15,8 @@ gradle test
 
 3. Run integration tests (requires API credentials):
 ```bash
-export JAVA_USERNAME=your_api_user
-export JAVA_PASSWORD=your_api_pass
+export JAVA_USERNAME=java_your_api_user
+export JAVA_PASSWORD=java_your_api_pass
 gradle test
 ```
 

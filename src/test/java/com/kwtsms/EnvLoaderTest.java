@@ -102,15 +102,15 @@ class EnvLoaderTest {
     @Test
     void loadEnvFile_realWorldExample() throws Exception {
         File envFile = createEnvFile(
-                "JAVA_USERNAME=myuser\n" +
-                "JAVA_PASSWORD=mypass\n" +
+                "KWTSMS_USERNAME=java_myuser\n" +
+                "KWTSMS_PASSWORD=java_mypass\n" +
                 "KWTSMS_SENDER_ID=MY-APP  # set to your ID\n" +
                 "KWTSMS_TEST_MODE=1\n" +
                 "KWTSMS_LOG_FILE=kwtsms.log\n"
         );
         Map<String, String> result = EnvLoader.loadEnvFile(envFile.getAbsolutePath());
-        assertEquals("myuser", result.get("JAVA_USERNAME"));
-        assertEquals("mypass", result.get("JAVA_PASSWORD"));
+        assertEquals("java_myuser", result.get("KWTSMS_USERNAME"));
+        assertEquals("java_mypass", result.get("KWTSMS_PASSWORD"));
         assertEquals("MY-APP", result.get("KWTSMS_SENDER_ID"));
         assertEquals("1", result.get("KWTSMS_TEST_MODE"));
     }

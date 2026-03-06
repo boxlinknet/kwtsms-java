@@ -66,7 +66,7 @@ import com.kwtsms.*;
 KwtSMS sms = KwtSMS.fromEnv();
 
 // Option 2: Pass credentials directly
-KwtSMS sms = new KwtSMS("your_api_user", "your_api_pass");
+KwtSMS sms = new KwtSMS("java_your_api_user", "java_your_api_pass");
 
 // Verify credentials
 VerifyResult verify = sms.verify();
@@ -84,8 +84,8 @@ System.out.println("Balance after: " + result.getBalanceAfter());
 Create a `.env` file (or set system environment variables):
 
 ```ini
-JAVA_USERNAME=your_api_user
-JAVA_PASSWORD=your_api_pass
+KWTSMS_USERNAME=java_your_api_user
+KWTSMS_PASSWORD=java_your_api_pass
 KWTSMS_SENDER_ID=YOUR-SENDER
 KWTSMS_TEST_MODE=1
 KWTSMS_LOG_FILE=kwtsms.log
@@ -102,7 +102,7 @@ KWTSMS_LOG_FILE=kwtsms.log
 KwtSMS sms = new KwtSMS(username, password, senderId, testMode, logFile);
 
 // Defaults: senderId="KWT-SMS", testMode=false, logFile="kwtsms.log"
-KwtSMS sms = new KwtSMS("user", "pass");
+KwtSMS sms = new KwtSMS("java_user", "java_pass");
 
 // From environment / .env file
 KwtSMS sms = KwtSMS.fromEnv();

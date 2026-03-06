@@ -18,8 +18,8 @@ Examples are standalone Java files. Copy the code into your project and adjust t
 All examples use `KwtSMS.fromEnv()` to load credentials from environment variables or a `.env` file:
 
 ```bash
-export JAVA_USERNAME=your_api_user
-export JAVA_PASSWORD=your_api_pass
+export KWTSMS_USERNAME=java_your_api_user
+export KWTSMS_PASSWORD=java_your_api_pass
 export KWTSMS_SENDER_ID=YOUR-SENDER
 export KWTSMS_TEST_MODE=1
 ```

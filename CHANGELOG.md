@@ -8,9 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-03-06
 
 ### Changed
-- `fromEnv()` now reads `JAVA_USERNAME` / `JAVA_PASSWORD` instead of `KWTSMS_USERNAME` / `KWTSMS_PASSWORD` for credentials, so each language client uses distinct env vars
-- ERR003 error message references `JAVA_USERNAME` / `JAVA_PASSWORD`
-- Updated all docs and examples to use `JAVA_USERNAME` / `JAVA_PASSWORD`
+- All credential placeholder values prefixed with `java_` (e.g., `java_your_api_user`) so API requests are identifiable per language client
+- Updated all docs and examples with `java_` prefixed placeholder values
 
 ### Updated
 - actions/checkout v4 → v6

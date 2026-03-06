@@ -18,7 +18,7 @@ public final class ApiErrors {
         Map<String, String> m = new LinkedHashMap<>();
         m.put("ERR001", "API is disabled on this account. Enable it at kwtsms.com \u2192 Account \u2192 API.");
         m.put("ERR002", "A required parameter is missing. Check that username, password, sender, mobile, and message are all provided.");
-        m.put("ERR003", "Wrong API username or password. Check JAVA_USERNAME and JAVA_PASSWORD. These are your API credentials, not your account mobile number.");
+        m.put("ERR003", "Wrong API username or password. Check KWTSMS_USERNAME and KWTSMS_PASSWORD. These are your API credentials, not your account mobile number.");
         m.put("ERR004", "This account does not have API access. Contact kwtSMS support to enable it.");
         m.put("ERR005", "This account is blocked. Contact kwtSMS support.");
         m.put("ERR006", "No valid phone numbers. Make sure each number includes the country code (e.g., 96598765432 for Kuwait, not 98765432).");

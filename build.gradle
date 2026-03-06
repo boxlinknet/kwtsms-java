@@ -1,0 +1,75 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.github.boxlinknet'
+version = '0.1.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = true
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = 'UTF-8'
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.github.boxlinknet'
+            artifactId = 'kwtsms-java'
+            version = project.version
+
+            from components.java
+
+            pom {
+                name = 'kwtsms'
+                description = 'Official Java client for the kwtSMS SMS gateway API'
+                url = 'https://github.com/boxlinknet/kwtsms-java'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'boxlinknet'
+                        name = 'Boxlink'
+                        url = 'https://www.kwtsms.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/boxlinknet/kwtsms-java.git'
+                    developerConnection = 'scm:git:ssh://github.com/boxlinknet/kwtsms-java.git'
+                    url = 'https://github.com/boxlinknet/kwtsms-java'
+                }
+            }
+        }
+    }
+}

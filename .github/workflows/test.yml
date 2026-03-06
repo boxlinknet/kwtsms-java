@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [8, 11, 17, 21]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java }}
+          distribution: temurin
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run tests
+        run: gradle test
+
+      - name: Run integration tests
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          JAVA_USERNAME: ${{ secrets.JAVA_USERNAME }}
+          JAVA_PASSWORD: ${{ secrets.JAVA_PASSWORD }}
+        run: gradle test

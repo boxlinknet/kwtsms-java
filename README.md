@@ -44,7 +44,7 @@ repositories {
 
 // build.gradle
 dependencies {
-    implementation 'com.github.boxlinknet:kwtsms-java:0.3.0'
+    implementation 'com.github.boxlinknet:kwtsms-java:0.4.0'
 }
 ```
 
@@ -58,7 +58,7 @@ repositories {
 
 // build.gradle.kts
 dependencies {
-    implementation("com.github.boxlinknet:kwtsms-java:0.3.0")
+    implementation("com.github.boxlinknet:kwtsms-java:0.4.0")
 }
 ```
 
@@ -75,7 +75,7 @@ dependencies {
 <dependency>
     <groupId>com.github.boxlinknet</groupId>
     <artifactId>kwtsms-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.4.0</version>
 </dependency>
 ```
 
@@ -237,12 +237,24 @@ for (DeliveryReportEntry entry : r.getReport()) {
 ```java
 import com.kwtsms.*;
 
-// Normalize phone number
-String phone = PhoneUtils.normalizePhone("+965 9876-5432"); // "96598765432"
+// Normalize phone number (strips +, 00, spaces, dashes, converts Arabic digits, strips trunk prefix)
+String phone = PhoneUtils.normalizePhone("+965 9876-5432");  // "96598765432"
+String saudi = PhoneUtils.normalizePhone("9660559123456");   // "966559123456" (trunk 0 stripped)
 
-// Validate phone input
+// Validate phone input (generic + country-specific rules)
 PhoneUtils.ValidationResult vr = PhoneUtils.validatePhoneInput("user@gmail.com");
 // vr.isValid()=false, vr.getError()="'user@gmail.com' is an email address..."
+
+PhoneUtils.ValidationResult vr2 = PhoneUtils.validatePhoneInput("96512345678");
+// vr2.isValid()=false, vr2.getError()="Invalid Kuwait mobile number: after +965 must start with 4, 5, 6, 9"
+
+// Find country code from a normalized number
+String cc = PhoneUtils.findCountryCode("96598765432");  // "965"
+String cc2 = PhoneUtils.findCountryCode("12025551234"); // "1"
+
+// Validate against country-specific format rules (length + mobile prefix)
+PhoneUtils.ValidationResult fmt = PhoneUtils.validatePhoneFormat("966559123456");  // valid Saudi
+PhoneUtils.ValidationResult fmt2 = PhoneUtils.validatePhoneFormat("966712345678"); // invalid: must start with 5
 
 // Deduplicate phone list
 List<String> unique = PhoneUtils.deduplicatePhones(phoneList);

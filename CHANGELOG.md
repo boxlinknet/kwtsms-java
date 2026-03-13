@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-13
+
+### Added
+- Country-specific phone validation: 75+ country rules (local length + mobile prefix)
+- `PhoneUtils.findCountryCode()`: match country code from normalized number (3, 2, or 1 digit)
+- `PhoneUtils.validatePhoneFormat()`: validate against country-specific format rules
+- Trunk prefix stripping in `normalizePhone()` (e.g., 9660559... becomes 966559..., 97105x becomes 9715x)
+- `PHONE_RULES` map with validation rules for GCC, Levant, Africa, Asia, Europe, Americas, Oceania
+- `COUNTRY_NAMES` map for human-readable error messages
+- GitGuardian secret scanning workflow
+- Zero Dependencies badge in README
+
+### Removed
+- CLI tool (`CLI.java`, `CLIIntegrationTest.java`). Replaced by standalone [kwtsms-cli](https://github.com/boxlinknet/kwtsms-cli)
+- `application` plugin and `mainClass` from build.gradle
+
+## [0.3.0] - 2026-03-06
+
+### Added
+- Raw API example (00-raw-api) demonstrating all kwtSMS endpoints without the client library
+- Examples 01-06: basic usage, OTP flow, bulk SMS, Spring endpoint, error handling, OTP production
+- Auto-release workflow (one-click release via Actions UI)
+- Auto-merge workflow for Dependabot patch/minor updates
+- Stale issue/PR cleanup workflow
+- `status()`: check message queue status
+- `deliveryReport()`: delivery reports for international numbers
+
 ## [0.2.0] - 2026-03-06
 
 ### Changed

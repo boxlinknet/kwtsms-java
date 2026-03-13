@@ -20,8 +20,10 @@ We will acknowledge receipt within 48 hours and provide an update within 7 days.
 
 | Version | Supported |
 |---------|-----------|
-| 0.2.x   | Yes       |
-| 0.1.x   | Yes       |
+| 0.4.x   | Yes       |
+| 0.3.x   | Yes       |
+| 0.2.x   | No        |
+| 0.1.x   | No        |
 
 ## Security Best Practices
 

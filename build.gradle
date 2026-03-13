@@ -1,12 +1,6 @@
 plugins {
     id 'java-library'
-    id 'application'
     id 'maven-publish'
-}
-
-application {
-    mainClass = 'com.kwtsms.CLI'
-    applicationName = 'kwtsms'
 }
 
 group = 'com.github.boxlinknet'

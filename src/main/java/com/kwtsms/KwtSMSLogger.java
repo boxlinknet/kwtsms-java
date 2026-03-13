@@ -17,6 +17,8 @@ final class KwtSMSLogger {
 
     private KwtSMSLogger() {}
 
+    private static final Object WRITE_LOCK = new Object();
+
     private static final DateTimeFormatter ISO_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
@@ -27,7 +29,7 @@ final class KwtSMSLogger {
     static Map<String, String> maskCredentials(Map<String, Object> payload) {
         Map<String, String> masked = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : payload.entrySet()) {
-            if ("password".equals(entry.getKey())) {
+            if ("password".equals(entry.getKey()) || "username".equals(entry.getKey())) {
                 masked.put(entry.getKey(), "***");
             } else {
                 masked.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue().toString());
@@ -69,10 +71,12 @@ final class KwtSMSLogger {
             }
             sb.append("}\n");
 
-            File file = new File(logFile);
-            try (OutputStreamWriter writer = new OutputStreamWriter(
-                    new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
-                writer.write(sb.toString());
+            synchronized (WRITE_LOCK) {
+                File file = new File(logFile);
+                try (OutputStreamWriter writer = new OutputStreamWriter(
+                        new FileOutputStream(file, true), StandardCharsets.UTF_8)) {
+                    writer.write(sb.toString());
+                }
             }
         } catch (Exception e) {
             // Logging must never crash the main flow

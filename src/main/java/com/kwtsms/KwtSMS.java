@@ -360,7 +360,7 @@ public class KwtSMS {
 
         for (int index = 0; index < batches.size(); index++) {
             if (index > 0) {
-                try { Thread.sleep(BATCH_DELAY_MS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                try { Thread.sleep(BATCH_DELAY_MS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
             }
 
             SendResult result = sendBatchWithRetry(batches.get(index), cleanedMessage, sender, index + 1);
@@ -402,7 +402,7 @@ public class KwtSMS {
                 return result;
             }
 
-            try { Thread.sleep(ERR013_RETRY_DELAYS[attempt]); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            try { Thread.sleep(ERR013_RETRY_DELAYS[attempt]); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return result; }
         }
 
         return lastResult != null ? lastResult : new SendResult("ERROR", null, null, null, null, null,

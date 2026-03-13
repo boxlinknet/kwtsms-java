@@ -22,6 +22,7 @@ final class ApiRequest {
 
     private static final String BASE_URL = "https://www.kwtsms.com/API";
     private static final int TIMEOUT_MS = 15_000;
+    private static final int MAX_RESPONSE_SIZE = 1_048_576; // 1 MB
 
     /**
      * Make a POST request to a kwtSMS API endpoint.
@@ -45,6 +46,7 @@ final class ApiRequest {
             connection.setRequestProperty("Accept", "application/json");
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
+            connection.setInstanceFollowRedirects(false);
             connection.setDoOutput(true);
 
             // Write request body
@@ -65,9 +67,13 @@ final class ApiRequest {
                 try (BufferedReader reader = new BufferedReader(
                         new InputStreamReader(stream, StandardCharsets.UTF_8))) {
                     StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
+                    char[] buf = new char[4096];
+                    int charsRead;
+                    while ((charsRead = reader.read(buf)) != -1) {
+                        if (sb.length() + charsRead > MAX_RESPONSE_SIZE) {
+                            throw new ApiException("Response too large (>" + MAX_RESPONSE_SIZE + " bytes)");
+                        }
+                        sb.append(buf, 0, charsRead);
                     }
                     responseBody = sb.toString();
                 }
@@ -181,12 +187,15 @@ final class ApiRequest {
     }
 
     private static final class JsonParser {
+        private static final int MAX_DEPTH = 50;
         private final String json;
         private int pos;
+        private int depth;
 
         JsonParser(String json) {
             this.json = json;
             this.pos = 0;
+            this.depth = 0;
         }
 
         Object parseValue() {
@@ -204,6 +213,7 @@ final class ApiRequest {
         }
 
         private Map<String, Object> parseObject() {
+            if (++depth > MAX_DEPTH) throw new IllegalArgumentException("JSON nesting too deep (>" + MAX_DEPTH + ")");
             Map<String, Object> map = new LinkedHashMap<>();
             pos++; // skip {
             skipWhitespace();
@@ -227,10 +237,12 @@ final class ApiRequest {
             }
             skipWhitespace();
             if (pos < json.length() && json.charAt(pos) == '}') pos++;
+            depth--;
             return map;
         }
 
         private List<Object> parseArray() {
+            if (++depth > MAX_DEPTH) throw new IllegalArgumentException("JSON nesting too deep (>" + MAX_DEPTH + ")");
             List<Object> list = new ArrayList<>();
             pos++; // skip [
             skipWhitespace();
@@ -249,6 +261,7 @@ final class ApiRequest {
             }
             skipWhitespace();
             if (pos < json.length() && json.charAt(pos) == ']') pos++;
+            depth--;
             return list;
         }
 
@@ -273,8 +286,24 @@ final class ApiRequest {
                             case 'u':
                                 if (pos + 4 < json.length()) {
                                     String hex = json.substring(pos + 1, pos + 5);
-                                    sb.append((char) Integer.parseInt(hex, 16));
+                                    char unit = (char) Integer.parseInt(hex, 16);
                                     pos += 4;
+                                    // Handle surrogate pairs: \uD800-\uDBFF followed by \uDC00-\uDFFF
+                                    if (Character.isHighSurrogate(unit)
+                                            && pos + 1 < json.length() && json.charAt(pos + 1) == '\\'
+                                            && pos + 2 < json.length() && json.charAt(pos + 2) == 'u'
+                                            && pos + 6 < json.length()) {
+                                        String hex2 = json.substring(pos + 3, pos + 7);
+                                        char low = (char) Integer.parseInt(hex2, 16);
+                                        if (Character.isLowSurrogate(low)) {
+                                            sb.appendCodePoint(Character.toCodePoint(unit, low));
+                                            pos += 6; // skip low surrogate escape
+                                        } else {
+                                            sb.append(unit);
+                                        }
+                                    } else {
+                                        sb.append(unit);
+                                    }
                                 }
                                 break;
                             default: sb.append(esc);
@@ -321,9 +350,11 @@ final class ApiRequest {
             if (json.startsWith("true", pos)) {
                 pos += 4;
                 return true;
-            } else {
+            } else if (json.startsWith("false", pos)) {
                 pos += 5;
                 return false;
+            } else {
+                throw new IllegalArgumentException("Expected 'true' or 'false' at position " + pos);
             }
         }
 
@@ -337,9 +368,10 @@ final class ApiRequest {
         }
 
         private void expect(char ch) {
-            if (pos < json.length() && json.charAt(pos) == ch) {
-                pos++;
+            if (pos >= json.length() || json.charAt(pos) != ch) {
+                throw new IllegalArgumentException("Expected '" + ch + "' at position " + pos);
             }
+            pos++;
         }
     }
 }

@@ -25,11 +25,13 @@ public final class InvalidEntry {
         if (this == o) return true;
         if (!(o instanceof InvalidEntry)) return false;
         InvalidEntry that = (InvalidEntry) o;
-        return input.equals(that.input) && error.equals(that.error);
+        return (input == null ? that.input == null : input.equals(that.input))
+            && (error == null ? that.error == null : error.equals(that.error));
     }
 
     @Override
     public int hashCode() {
-        return 31 * input.hashCode() + error.hashCode();
+        int h = input == null ? 0 : input.hashCode();
+        return 31 * h + (error == null ? 0 : error.hashCode());
     }
 }
